@@ -1,3 +1,4 @@
+
 import {
   LoginRequest,
   SignupRequest,
@@ -8,6 +9,7 @@ import {
   API_BASE_URL,
   API_ENDPOINTS,
 } from '@/common';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const authService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
@@ -100,8 +102,8 @@ export const authService = {
     return !!this.getToken();
   },
   async updateProfile(data: { name?: string; password?: string }): Promise<User> {
-  const token = localStorage.getItem('token');
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+  const token = this.getToken();
+  const response = await fetch(`${API_URL}/auth/me`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -115,5 +117,17 @@ export const authService = {
   const updatedUser = await response.json();
   localStorage.setItem('user', JSON.stringify(updatedUser));
   return updatedUser;
+},
+async deleteProfile(): Promise<void> {
+  const token = this.getToken();
+  const response = await fetch(`${API_URL}/auth/me`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) throw new Error('Delete failed');
+  this.logout();
 },
 };

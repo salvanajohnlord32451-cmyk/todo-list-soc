@@ -68,4 +68,13 @@ export const authController = {
       res.status(500).json({ error: 'Update failed' });
     }
   },
+  async deleteMe(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = (req as any).userId;
+    await authService.deleteAccount(userId);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+},
 };

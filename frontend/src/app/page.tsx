@@ -148,7 +148,7 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'profile' ? (
-          <ProfileView user={user} />
+          <ProfileView user={user} onUpdate={(updatedUser) => setUser(updatedUser)} />
         ) : (
           <div>
             {viewMode === 'grid' ? (

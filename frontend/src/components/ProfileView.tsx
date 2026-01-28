@@ -7,11 +7,13 @@ import { authService } from '@/services/auth.service';
 
 interface ProfileViewProps {
   user: User;
+  onUpdate: (updatedUser: User) => void;
 }
 
-export const ProfileView = ({ user }: ProfileViewProps) => {
+export const ProfileView = ({ user, onUpdate }: ProfileViewProps) => {
   const [stats, setStats] = useState({ total: 0, completed: 0, pending: 0 });
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [name, setName] = useState(user.name);
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState({ type: '', msg: '' });
@@ -32,15 +34,30 @@ export const ProfileView = ({ user }: ProfileViewProps) => {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await authService.updateProfile({ 
+      const updatedUser = await authService.updateProfile({ 
         name, 
         password: password || undefined 
       });
+      onUpdate(updatedUser);
       setStatus({ type: 'success', msg: 'Profile updated!' });
       setIsEditing(false);
       setPassword('');
     } catch (err) {
       setStatus({ type: 'error', msg: 'Update failed.' });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm("Are you sure? This will permanently delete your account and all your data. This cannot be undone.");
+    if (!confirmed) return;
+
+    try {
+      setIsDeleting(true);
+      await authService.deleteProfile();
+      window.location.reload();
+    } catch (err) {
+      setStatus({ type: 'error', msg: 'Failed to delete account.' });
+      setIsDeleting(false);
     }
   };
 
@@ -96,6 +113,10 @@ export const ProfileView = ({ user }: ProfileViewProps) => {
       ) : (
         <div className="space-y-6">
           <div>
+            <p className="text-gray-500 text-sm font-bold uppercase tracking-wider">Username</p>
+            <p className="text-lg text-gray-800">{user.name}</p>
+          </div>
+          <div>
             <p className="text-gray-500 text-sm font-bold uppercase tracking-wider">Email</p>
             <p className="text-lg text-gray-800">{user.email}</p>
           </div>
@@ -111,6 +132,22 @@ export const ProfileView = ({ user }: ProfileViewProps) => {
             <div className="bg-yellow-50 p-4 rounded-lg text-center">
               <p className="text-xs font-bold text-yellow-600 uppercase">Pending</p>
               <p className="text-2xl font-black text-yellow-900">{stats.pending}</p>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-6 border-t border-red-100">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100 flex justify-between items-center">
+              <div>
+                <p className="text-gray-900 font-semibold">Delete Account</p>
+                <p className="text-gray-500 text-xs">Permanent action. All data will be wiped.</p>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+              </button>
             </div>
           </div>
         </div>

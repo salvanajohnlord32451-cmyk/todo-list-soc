@@ -8,5 +8,5 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 router.get('/me', authMiddleware, authController.me);
 router.patch('/me', authMiddleware, authController.updateMe);
-
+router.delete('/me', authMiddleware, authController.deleteMe);
 export default router;

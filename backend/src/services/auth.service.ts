@@ -11,6 +11,7 @@ import {
   SALT_ROUNDS,
 } from '../common';
 import { User, IUser } from '../models/user.model';
+import { Todo } from '../models/todo.model';
 
 export const authService = {
   async signup(data: SignupRequest): Promise<AuthResponse> {
@@ -82,5 +83,9 @@ export const authService = {
     }
 
     return await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+  },
+  async deleteAccount(userId: string) {
+    await Todo.deleteMany({ userId });
+    return await User.findByIdAndDelete(userId);
   },
 };
