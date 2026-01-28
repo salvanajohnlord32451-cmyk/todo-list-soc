@@ -99,4 +99,21 @@ export const authService = {
   isAuthenticated(): boolean {
     return !!this.getToken();
   },
+  async updateProfile(data: { name?: string; password?: string }): Promise<User> {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) throw new Error('Update failed');
+  
+  const updatedUser = await response.json();
+  localStorage.setItem('user', JSON.stringify(updatedUser));
+  return updatedUser;
+},
 };

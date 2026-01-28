@@ -52,4 +52,20 @@ export const authController = {
       res.status(500).json({ error: 'Failed to get user' });
     }
   },
+  async updateMe(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).userId;
+      const { name, password } = req.body;
+
+      if (!name && !password) {
+        res.status(400).json({ error: 'Nothing to update' });
+        return;
+      }
+
+      const updatedUser = await authService.updateAccount(userId, { name, password });
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ error: 'Update failed' });
+    }
+  },
 };
