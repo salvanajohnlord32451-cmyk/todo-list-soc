@@ -7,9 +7,10 @@ interface AuthFormProps {
   mode: 'login' | 'signup';
   onSubmit: (data: LoginRequest | SignupRequest) => Promise<void>;
   onModeChange: () => void;
+  onForgotPassword?: () => void;
 }
 
-export function AuthForm({ mode, onSubmit, onModeChange }: AuthFormProps) {
+export function AuthForm({ mode, onSubmit, onModeChange, onForgotPassword }: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -103,6 +104,16 @@ export function AuthForm({ mode, onSubmit, onModeChange }: AuthFormProps) {
           >
             {isLoading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Sign Up'}
           </button>
+
+          {mode === 'login' && onForgotPassword && (
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="w-full text-sm text-blue-600 hover:text-blue-800 mt-2"
+            >
+              Forgot your password?
+            </button>
+          )}
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600">

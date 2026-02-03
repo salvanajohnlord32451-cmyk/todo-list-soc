@@ -9,7 +9,7 @@ import {
   API_BASE_URL,
   API_ENDPOINTS,
 } from '@/common';
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export const authService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
@@ -100,6 +100,32 @@ export const authService = {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.FORGOT_PASSWORD}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Request failed');
+    }
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.RESET_PASSWORD}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Reset failed');
+    }
   },
   async updateProfile(data: { name?: string; password?: string }): Promise<User> {
   const token = this.getToken();

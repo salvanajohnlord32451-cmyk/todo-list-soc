@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -5,8 +8,8 @@ import authRoutes from './routes/auth.routes';
 import todoRoutes from './routes/todo.routes';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/todo_app';
+const PORT = parseInt(process.env.PORT!, 10);
+const MONGO_URI = process.env.MONGO_URI!;
 
 app.use(cors());
 app.use(express.json());

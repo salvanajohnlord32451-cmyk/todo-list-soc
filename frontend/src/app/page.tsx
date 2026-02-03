@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Todo, CreateTodoRequest, UpdateTodoRequest, User, LoginRequest, SignupRequest } from '@/common';
 import { authService } from '@/services/auth.service';
 import { todoService } from '@/services/todo.service';
-import { TodoItem, TodoForm, AuthForm, Modal, CalendarView, ProfileView } from '@/components';
+import { TodoItem, TodoForm, AuthForm, Modal, CalendarView, ProfileView, ForgotPassword } from '@/components';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -14,13 +14,14 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'calendar'>('grid');
   const [activeTab, setActiveTab] = useState<'tasks' | 'profile'>('tasks');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const loadTodos = useCallback(async () => {
     try {
       const data = await todoService.getAll();
       setTodos(data);
     } catch (error) {
-      console.error('Failed to load todos:', error);
+      console.error(error);
     }
   }, []);
 
@@ -73,28 +74,43 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg font-medium text-gray-600 animate-pulse">Loading Dashboard...</div>
       </div>
     );
   }
 
   if (!user) {
+    if (showForgotPassword) {
+      return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+    }
     return (
       <AuthForm
         mode={authMode}
         onSubmit={handleAuth}
         onModeChange={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+        onForgotPassword={() => setShowForgotPassword(true)}
       />
     );
   }
 
-  const sortedTodos = [...todos].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const incompleteTodos = todos
+    .filter((t) => !t.completed)
+    .sort((a, b) => {
+      if (a.deadline && b.deadline) {
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
+      if (a.deadline) return -1;
+      if (b.deadline) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+  const completedTodos = todos
+    .filter((t) => t.completed)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 
             className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
@@ -152,23 +168,53 @@ export default function Home() {
         ) : (
           <div>
             {viewMode === 'grid' ? (
-              <div>
-                {todos.length === 0 ? (
-                  <div className="text-center py-16 text-gray-500 bg-white rounded-xl border-2 border-dashed">
-                    <p className="text-lg mb-2">No TO DOs yet</p>
-                    <p className="text-sm">Click the + button to create your first one!</p>
+              <div className="space-y-12">
+                <section>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-lg font-bold text-gray-800">Priority (By Deadline)</h2>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                      {incompleteTodos.length}
+                    </span>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sortedTodos.map((todo) => (
-                      <TodoItem
-                        key={todo.id}
-                        todo={todo}
-                        onUpdate={handleUpdateTodo}
-                        onDelete={handleDeleteTodo}
-                      />
-                    ))}
-                  </div>
+                  
+                  {incompleteTodos.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 bg-white rounded-xl border-2 border-dashed">
+                      <p>No pending tasks!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {incompleteTodos.map((todo) => (
+                        <TodoItem
+                          key={todo.id}
+                          todo={todo}
+                          onUpdate={handleUpdateTodo}
+                          onDelete={handleDeleteTodo}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                {completedTodos.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-4">
+                      <h2 className="text-lg font-bold text-gray-500">Completed</h2>
+                      <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                        {completedTodos.length}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-75">
+                      {completedTodos.map((todo) => (
+                        <TodoItem
+                          key={todo.id}
+                          todo={todo}
+                          onUpdate={handleUpdateTodo}
+                          onDelete={handleDeleteTodo}
+                        />
+                      ))}
+                    </div>
+                  </section>
                 )}
               </div>
             ) : (

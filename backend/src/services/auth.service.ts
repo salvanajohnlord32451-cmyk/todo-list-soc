@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import {
   UserDTO,
   LoginRequest,
@@ -12,6 +13,7 @@ import {
 } from '../common';
 import { User, IUser } from '../models/user.model';
 import { Todo } from '../models/todo.model';
+import { emailService } from './email.service';
 
 export const authService = {
   async signup(data: SignupRequest): Promise<AuthResponse> {
@@ -87,5 +89,38 @@ export const authService = {
   async deleteAccount(userId: string) {
     await Todo.deleteMany({ userId });
     return await User.findByIdAndDelete(userId);
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal if email exists
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    await emailService.sendPasswordResetEmail(email, resetToken);
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
   },
 };

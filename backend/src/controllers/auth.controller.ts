@@ -69,12 +69,45 @@ export const authController = {
     }
   },
   async deleteMe(req: Request, res: Response): Promise<void> {
-  try {
-    const userId = (req as any).userId;
-    await authService.deleteAccount(userId);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete account' });
-  }
-},
+    try {
+      const userId = (req as any).userId;
+      await authService.deleteAccount(userId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete account' });
+    }
+  },
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        res.status(400).json({ error: 'Email is required' });
+        return;
+      }
+
+      await authService.forgotPassword(email);
+      res.status(200).json({ message: 'If the email exists, a reset link has been sent' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to process request' });
+    }
+  },
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        res.status(400).json({ error: 'Token and password are required' });
+        return;
+      }
+
+      await authService.resetPassword(token, password);
+      res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Reset failed';
+      res.status(400).json({ error: message });
+    }
+  },
 };
