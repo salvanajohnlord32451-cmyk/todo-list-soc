@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -111,11 +111,23 @@ export default function ResetPasswordPage() {
         )}
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          <a href="/" className="text-blue-600 hover:text-blue-800 font-medium">
+        <a href="/" className="text-blue-600 hover:text-blue-800 font-medium">
             Back to login
           </a>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-lg font-medium text-gray-600 animate-pulse">Loading...</div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
