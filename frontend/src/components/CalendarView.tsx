@@ -27,12 +27,32 @@ export function CalendarView({ todos, onUpdate, onDelete }: CalendarViewProps) {
   };
 
   const getTodosForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
     return todos.filter(todo => {
       if (!todo.deadline) return false;
-      const todoDate = new Date(todo.deadline).toISOString().split('T')[0];
-      return todoDate === dateStr;
+      const deadline = new Date(todo.deadline);
+      return (
+        deadline.getFullYear() === date.getFullYear() &&
+        deadline.getMonth() === date.getMonth() &&
+        deadline.getDate() === date.getDate()
+      );
     });
+  };
+
+  const getTodoColor = (todo: Todo) => {
+    if (todo.completed) {
+      return 'bg-green-100 hover:bg-green-200 text-green-700';
+    }
+    const now = new Date();
+    const deadline = new Date(todo.deadline!);
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    
+    if (deadline < now) {
+      return 'bg-red-100 hover:bg-red-200 text-red-700';
+    }
+    if (deadline <= threeDaysFromNow) {
+      return 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700';
+    }
+    return 'bg-blue-100 hover:bg-blue-200 text-blue-700';
   };
 
   const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentDate);
@@ -81,10 +101,10 @@ export function CalendarView({ todos, onUpdate, onDelete }: CalendarViewProps) {
           {dayTodos.map(todo => (
             <div
               key={todo.id}
-              className="text-xs p-1 rounded bg-gray-100 hover:bg-blue-100 cursor-pointer transition-colors"
+              className={`text-xs p-1.5 rounded cursor-pointer transition-colors ${getTodoColor(todo)}`}
               onClick={() => handleTodoClick(todo)}
             >
-              <div className={`truncate ${todo.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+              <div className={`truncate font-medium ${todo.completed ? 'line-through opacity-60' : ''}`}>
                 {todo.title}
               </div>
             </div>
