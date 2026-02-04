@@ -11,7 +11,10 @@ const app = express();
 const PORT = parseInt(process.env.PORT!, 10);
 const MONGO_URI = process.env.MONGO_URI!;
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
