@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Todo, CreateTodoRequest, UpdateTodoRequest, User, LoginRequest, SignupRequest } from '@/common';
 import { authService } from '@/services/auth.service';
 import { todoService } from '@/services/todo.service';
-import { TodoItem, TodoForm, AuthForm, Modal, CalendarView, ProfileView, ForgotPassword } from '@/components';
+import { TodoForm, TodoSection, AuthForm, Modal, CalendarView, ProfileView, ForgotPassword } from '@/components';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -96,23 +96,18 @@ export default function Home() {
   const now = new Date();
   const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
-  // Overdue: past deadline, not completed
   const overdueTodos = todos
     .filter((t) => !t.completed && t.deadline && new Date(t.deadline) < now)
     .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime());
 
-  // Due Soon: deadline within 3 days, not completed, not overdue
   const dueSoonTodos = todos
     .filter((t) => !t.completed && t.deadline && new Date(t.deadline) >= now && new Date(t.deadline) <= threeDaysFromNow)
     .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime());
 
-  // Other incomplete todos (no deadline or deadline > 3 days)
   const incompleteTodos = todos
     .filter((t) => !t.completed && !overdueTodos.includes(t) && !dueSoonTodos.includes(t))
     .sort((a, b) => {
-      if (a.deadline && b.deadline) {
-        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-      }
+      if (a.deadline && b.deadline) return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
       if (a.deadline) return -1;
       if (b.deadline) return 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -121,6 +116,8 @@ export default function Home() {
   const completedTodos = todos
     .filter((t) => t.completed)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const noTasks = incompleteTodos.length === 0 && overdueTodos.length === 0 && dueSoonTodos.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -183,104 +180,46 @@ export default function Home() {
           <div>
             {viewMode === 'grid' ? (
               <div className="space-y-8">
-                {/* Overdue Section */}
-                {overdueTodos.length > 0 && (
-                  <section className="bg-red-50 rounded-xl p-4 border border-red-200">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl">🚨</span>
-                      <h2 className="text-lg font-bold text-red-700">Overdue</h2>
-                      <span className="bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs font-bold">
-                        {overdueTodos.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {overdueTodos.map((todo) => (
-                        <TodoItem
-                          key={todo.id}
-                          todo={todo}
-                          onUpdate={handleUpdateTodo}
-                          onDelete={handleDeleteTodo}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <TodoSection
+                  title="Overdue"
+                  todos={overdueTodos}
+                  icon="🚨"
+                  badge={{ bg: 'bg-red-200', text: 'text-red-800' }}
+                  containerClass="bg-red-50 rounded-xl p-4 border border-red-200"
+                  titleClass="text-red-700"
+                  onUpdate={handleUpdateTodo}
+                  onDelete={handleDeleteTodo}
+                />
 
-                {/* Due Soon Section */}
-                {dueSoonTodos.length > 0 && (
-                  <section className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl">⏰</span>
-                      <h2 className="text-lg font-bold text-yellow-700">Due Soon (Next 3 Days)</h2>
-                      <span className="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-bold">
-                        {dueSoonTodos.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {dueSoonTodos.map((todo) => (
-                        <TodoItem
-                          key={todo.id}
-                          todo={todo}
-                          onUpdate={handleUpdateTodo}
-                          onDelete={handleDeleteTodo}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <TodoSection
+                  title="Due Soon (Next 3 Days)"
+                  todos={dueSoonTodos}
+                  icon="⏰"
+                  badge={{ bg: 'bg-yellow-200', text: 'text-yellow-800' }}
+                  containerClass="bg-yellow-50 rounded-xl p-4 border border-yellow-200"
+                  titleClass="text-yellow-700"
+                  onUpdate={handleUpdateTodo}
+                  onDelete={handleDeleteTodo}
+                />
 
-                {/* Other Tasks Section */}
-                <section>
-                  <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-lg font-bold text-gray-800">Other Tasks</h2>
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                      {incompleteTodos.length}
-                    </span>
-                  </div>
-                  
-                  {incompleteTodos.length === 0 && overdueTodos.length === 0 && dueSoonTodos.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 bg-white rounded-xl border-2 border-dashed">
-                      <p>No pending tasks!</p>
-                    </div>
-                  ) : incompleteTodos.length === 0 ? (
-                    <div className="text-center py-6 text-gray-400 bg-white rounded-xl border-2 border-dashed">
-                      <p>No other tasks</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {incompleteTodos.map((todo) => (
-                        <TodoItem
-                          key={todo.id}
-                          todo={todo}
-                          onUpdate={handleUpdateTodo}
-                          onDelete={handleDeleteTodo}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
+                <TodoSection
+                  title="Pending Tasks"
+                  todos={incompleteTodos}
+                  badge={{ bg: 'bg-blue-100', text: 'text-blue-700' }}
+                  emptyMessage={noTasks ? 'No pending tasks!' : 'No other tasks'}
+                  onUpdate={handleUpdateTodo}
+                  onDelete={handleDeleteTodo}
+                />
 
-                {completedTodos.length > 0 && (
-                  <section>
-                    <div className="flex items-center gap-2 mb-4">
-                      <h2 className="text-lg font-bold text-gray-500">Completed</h2>
-                      <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">
-                        {completedTodos.length}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-75">
-                      {completedTodos.map((todo) => (
-                        <TodoItem
-                          key={todo.id}
-                          todo={todo}
-                          onUpdate={handleUpdateTodo}
-                          onDelete={handleDeleteTodo}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <TodoSection
+                  title="Completed"
+                  todos={completedTodos}
+                  badge={{ bg: 'bg-gray-200', text: 'text-gray-600' }}
+                  titleClass="text-gray-500"
+                  containerClass="opacity-75"
+                  onUpdate={handleUpdateTodo}
+                  onDelete={handleDeleteTodo}
+                />
               </div>
             ) : (
               <CalendarView

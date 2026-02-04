@@ -1,5 +1,6 @@
 export { TodoItem } from './TodoItem';
 export { TodoForm } from './TodoForm';
+export { TodoSection } from './TodoSection';
 export { AuthForm } from './AuthForm';
 export { ForgotPassword } from './ForgotPassword';
 export { Modal } from './Modal';
