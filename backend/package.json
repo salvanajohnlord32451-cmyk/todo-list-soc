@@ -4,7 +4,7 @@
   "description": "Todo List API with Express and TypeScript",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npm install && tsc",
     "start": "node index.js",
     "dev": "ts-node-dev --respawn src/index.ts"
   },
