@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Todo, CreateTodoRequest, UpdateTodoRequest, User, LoginRequest, SignupRequest } from '@/common';
 import { authService } from '@/services/auth.service';
 import { todoService } from '@/services/todo.service';
-import { TodoForm, TodoSection, AuthForm, Modal, CalendarView, ProfileView, ForgotPassword } from '@/components';
+import { TodoForm, TodoSection, AuthForm, Modal, CalendarView, SearchView, ProfileView, ForgotPassword } from '@/components';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -13,7 +13,7 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'calendar'>('grid');
-  const [activeTab, setActiveTab] = useState<'tasks' | 'profile'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'search' | 'profile'>('tasks');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const loadTodos = useCallback(async () => {
@@ -153,13 +153,21 @@ export default function Home() {
             )}
 
             <div className="flex items-center gap-4 border-l pl-6">
-              <button 
-                onClick={() => setActiveTab(activeTab === 'tasks' ? 'profile' : 'tasks')}
+              <button
+                onClick={() => setActiveTab(activeTab === 'search' ? 'tasks' : 'search')}
                 className={`text-sm font-semibold transition-colors ${
-                  activeTab === 'profile' ? 'text-gray-900' : 'text-blue-600 hover:text-blue-800'
+                  activeTab === 'search' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {activeTab === 'tasks' ? `Hello, ${user.name}` : 'Back to Dashboard'}
+                🔍 Search
+              </button>
+              <button 
+                onClick={() => setActiveTab(activeTab === 'profile' ? 'tasks' : 'profile')}
+                className={`text-sm font-semibold transition-colors ${
+                  activeTab === 'profile' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                👤 {user.name}
               </button>
               
               <button
@@ -176,6 +184,8 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'profile' ? (
           <ProfileView user={user} onUpdate={(updatedUser) => setUser(updatedUser)} />
+        ) : activeTab === 'search' ? (
+          <SearchView todos={todos} onUpdate={handleUpdateTodo} onDelete={handleDeleteTodo} />
         ) : (
           <div>
             {viewMode === 'grid' ? (

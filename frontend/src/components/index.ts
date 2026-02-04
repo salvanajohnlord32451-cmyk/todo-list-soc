@@ -5,5 +5,6 @@ export { AuthForm } from './AuthForm';
 export { ForgotPassword } from './ForgotPassword';
 export { Modal } from './Modal';
 export { CalendarView } from './CalendarView';
+export { SearchView } from './SearchView';
 export { TodoDetailModal } from './TodoDetailModal';
 export { ProfileView } from './ProfileView';

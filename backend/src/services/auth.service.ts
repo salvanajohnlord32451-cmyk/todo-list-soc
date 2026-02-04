@@ -94,7 +94,6 @@ export const authService = {
   async forgotPassword(email: string): Promise<void> {
     const user = await User.findOne({ email });
     if (!user) {
-      // Don't reveal if email exists
       return;
     }
 
