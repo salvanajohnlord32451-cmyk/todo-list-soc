@@ -8,9 +8,10 @@ interface SearchViewProps {
   todos: Todo[];
   onUpdate: (id: string, data: UpdateTodoRequest) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onBack: () => void;
 }
 
-export function SearchView({ todos, onUpdate, onDelete }: SearchViewProps) {
+export function SearchView({ todos, onUpdate, onDelete, onBack }: SearchViewProps) {
   const [searchTitle, setSearchTitle] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'incomplete'>('all');
   const [filterDate, setFilterDate] = useState('');
@@ -55,7 +56,15 @@ export function SearchView({ todos, onUpdate, onDelete }: SearchViewProps) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Search & Filter Tasks</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800">Search & Filter Tasks</h2>
+          <button
+            onClick={onBack}
+            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>

@@ -185,7 +185,7 @@ export default function Home() {
         {activeTab === 'profile' ? (
           <ProfileView user={user} onUpdate={(updatedUser) => setUser(updatedUser)} />
         ) : activeTab === 'search' ? (
-          <SearchView todos={todos} onUpdate={handleUpdateTodo} onDelete={handleDeleteTodo} />
+          <SearchView todos={todos} onUpdate={handleUpdateTodo} onDelete={handleDeleteTodo} onBack={() => setActiveTab('tasks')} />
         ) : (
           <div>
             {viewMode === 'grid' ? (
